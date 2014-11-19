@@ -54,10 +54,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <commons-io.version>2.4</commons-io.version>
+    <closure-compiler.version>v20141023</closure-compiler.version>
     <rhino.version>1.7R4</rhino.version>
-    <plexus-container.version>1.5.5</plexus-container.version>
-    <plexus-build.version>0.0.7</plexus-build.version>
-    <plexus-utils.version>3.0.17</plexus-utils.version>
   </properties>
   <dependencies>
 
@@ -79,48 +77,12 @@
       <artifactId>rhino</artifactId>
       <version>${rhino.version}</version>
     </dependency>
+
+
     <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-container-default</artifactId>
-      <version>${plexus-container.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>plexus-classworlds</artifactId>
-          <groupId>org.codehaus.plexus</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>xbean-reflect</artifactId>
-          <groupId>org.apache.xbean</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>google-collections</artifactId>
-          <groupId>com.google.collections</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>junit</artifactId>
-          <groupId>junit</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>plexus-utils</artifactId>
-          <groupId>org.codehaus.plexus</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.plexus</groupId>
-      <artifactId>plexus-build-api</artifactId>
-      <version>${plexus-build.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>plexus-utils</artifactId>
-          <groupId>org.codehaus.plexus</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>${plexus-utils.version}</version>
+      <groupId>com.google.javascript</groupId>
+      <artifactId>closure-compiler</artifactId>
+      <version>${closure-compiler.version}</version>
     </dependency>
   </dependencies>
 

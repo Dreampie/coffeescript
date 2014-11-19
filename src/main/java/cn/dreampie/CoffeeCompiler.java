@@ -18,6 +18,11 @@ package cn.dreampie;
 
 import cn.dreampie.logging.CoffeeLogger;
 import cn.dreampie.logging.CoffeeLoggerFactory;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.google.javascript.jscomp.*;
+import com.google.javascript.jscomp.Compiler;
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
@@ -45,6 +50,8 @@ public class CoffeeCompiler {
 
   private static final int BUFFER_SIZE = 262144;
   private static final int BUFFER_OFFSET = 0;
+  private CompilationLevel compilationLevel = CompilationLevel.SIMPLE_OPTIMIZATIONS;
+
 
   public CoffeeCompiler() {
     this(Collections.<Option>emptyList());
@@ -210,7 +217,7 @@ public class CoffeeCompiler {
   public void compile(File input, File output, boolean force) throws IOException, CoffeeException {
     if (force || !output.exists() || output.lastModified() < input.lastModified()) {
       String data = compile(input);
-      FileUtils.writeStringToFile(output, data, encoding);
+      writeToFile(output, data);
     }
   }
 
@@ -240,7 +247,7 @@ public class CoffeeCompiler {
   public void compile(CoffeeSource input, File output, boolean force) throws IOException, CoffeeException {
     if (force || (!output.exists() && output.createNewFile()) || output.lastModified() < input.getLastModified()) {
       String data = compile(input);
-      FileUtils.writeStringToFile(output, data, encoding);
+      writeToFile(output, data);
     }
   }
 
@@ -254,7 +261,7 @@ public class CoffeeCompiler {
 
     String data = new CoffeeCompiler(optionArgs).compile(readSourceFrom(new FileInputStream(input)), name);
 
-    FileUtils.writeStringToFile(output, data, encoding);
+    writeToFile(output, data);
 
   }
 
@@ -286,6 +293,73 @@ public class CoffeeCompiler {
       }
     }
     return optionArgs;
+  }
+
+
+  private void writeToFile(File output, String data) throws IOException {
+    String source = data;
+    if (compress) {
+      Compiler compiler = new Compiler();
+      Result result = compiler.compile(getExterns(), Lists.newArrayList(SourceFile.fromCode(output.getName(), data)), getCompilerOptions());
+      source = compiler.toSource();
+      logger.debug(result.debugLog);
+      for (JSError error : result.errors) {
+        logger.error("Closure Minifier Error:  " + error.sourceName + "  Description:  " + error.description);
+      }
+      for (JSError warning : result.warnings) {
+        logger.info("Closure Minifier Warning:  " + warning.sourceName + "  Description:  " + warning.description);
+      }
+
+      if (result.success) {
+        try {
+          FileUtils.writeStringToFile(output, source, encoding);
+        } catch (IOException e) {
+          throw new CoffeeException("Failed to write minified file to " + output, e);
+        }
+      } else {
+        throw new CoffeeException("Closure Compiler Failed - See error messages on System.err");
+      }
+    } else {
+      try {
+        FileUtils.writeStringToFile(output, source, encoding);
+      } catch (IOException e) {
+        throw new CoffeeException("Failed to write file to " + output, e);
+      }
+    }
+  }
+
+  /**
+   * Prepare options for the Compiler.
+   */
+  private CompilerOptions getCompilerOptions() {
+    CompilationLevel level = null;
+    try {
+      level = this.compilationLevel;
+    } catch (IllegalArgumentException e) {
+      throw new CoffeeException("Compilation level is invalid", e);
+    }
+
+    CompilerOptions options = new CompilerOptions();
+    level.setOptionsForCompilationLevel(options);
+
+    return options;
+  }
+
+  /**
+   * Externs are defined in the Closure documentations as:
+   * External variables are declared in 'externs' files. For instance, the file may include
+   * definitions for global javascript/browser objects such as window, document.
+   * <p/>
+   * This method sneaks into the CommandLineRunner class of the Closure command line tool
+   * and pulls the default Externs there.  This class could be modified to instead look
+   * somewhere more relevant to the project.
+   */
+  private List<SourceFile> getExterns() {
+    try {
+      return CommandLineRunner.getDefaultExterns();
+    } catch (IOException e) {
+      throw new CoffeeException("Unable to load default External variables Files. The files include definitions for global javascript/browser objects such as window, document.", e);
+    }
   }
 
   public List<Option> getOptionArgs() {
