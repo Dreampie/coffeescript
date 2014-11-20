@@ -43,7 +43,7 @@ public class CoffeeCompiler {
   private URL coffeeJs = CoffeeCompiler.class.getClassLoader().getResource("/lib/coffee-script-1.7.1.min.js");
   private List<Option> optionArgs = Collections.emptyList();
   private String encoding = null;
-  private Boolean compress = null;
+  private Boolean compress = false;
 
   private Scriptable globalScope;
   private Options options;
@@ -78,9 +78,9 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Returns whether the compiler will compress the CSS.
+   * Returns whether the compiler will compress the js.
    *
-   * @return Whether the compiler will compress the CSS.
+   * @return Whether the compiler will compress the js.
    */
   public boolean isCompress() {
     return (compress != null && compress.booleanValue()) ||
@@ -88,10 +88,10 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Sets the compiler to compress the CSS.
+   * Sets the compiler to compress the js.
    * Must be set before {@link #init()} is called.
    *
-   * @param compress If <code>true</code>, sets the compiler to compress the CSS.
+   * @param compress If <code>true</code>, sets the compiler to compress the js.
    */
   public synchronized void setCompress(boolean compress) {
     this.compress = compress;
@@ -185,10 +185,10 @@ public class CoffeeCompiler {
 
 
   /**
-   * Compiles the COFFEE input <code>File</code> to CSS.
+   * Compiles the COFFEE input <code>File</code> to js.
    *
    * @param input The COFFEE input <code>File</code> to compile.
-   * @return The CSS.
+   * @return The js.
    * @throws java.io.IOException If the COFFEE file cannot be read.
    */
   public String compile(File input) throws IOException, CoffeeException {
@@ -196,10 +196,10 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Compiles the COFFEE input <code>File</code> to CSS and writes it to the specified output <code>File</code>.
+   * Compiles the COFFEE input <code>File</code> to js and writes it to the specified output <code>File</code>.
    *
    * @param input  The COFFEE input <code>File</code> to compile.
-   * @param output The output <code>File</code> to write the CSS to.
+   * @param output The output <code>File</code> to write the js to.
    * @throws java.io.IOException If the COFFEE file cannot be read or the output file cannot be written.
    */
   public void compile(File input, File output) throws IOException, CoffeeException {
@@ -207,10 +207,10 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Compiles the COFFEE input <code>File</code> to CSS and writes it to the specified output <code>File</code>.
+   * Compiles the COFFEE input <code>File</code> to js and writes it to the specified output <code>File</code>.
    *
    * @param input  The COFFEE input <code>File</code> to compile.
-   * @param output The output <code>File</code> to write the CSS to.
+   * @param output The output <code>File</code> to write the js to.
    * @param force  'false' to only compile the COFFEE input file in case the COFFEE source has been modified (including imports) or the output file does not exists.
    * @throws java.io.IOException If the COFFEE file cannot be read or the output file cannot be written.
    */
@@ -226,10 +226,10 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Compiles the input <code>CoffeeSource</code> to CSS and writes it to the specified output <code>File</code>.
+   * Compiles the input <code>CoffeeSource</code> to js and writes it to the specified output <code>File</code>.
    *
    * @param input  The input <code>CoffeeSource</code> to compile.
-   * @param output The output <code>File</code> to write the CSS to.
+   * @param output The output <code>File</code> to write the js to.
    * @throws java.io.IOException If the COFFEE file cannot be read or the output file cannot be written.
    */
   public void compile(CoffeeSource input, File output) throws IOException, CoffeeException {
@@ -237,10 +237,10 @@ public class CoffeeCompiler {
   }
 
   /**
-   * Compiles the input <code>CoffeeSource</code> to CSS and writes it to the specified output <code>File</code>.
+   * Compiles the input <code>CoffeeSource</code> to js and writes it to the specified output <code>File</code>.
    *
    * @param input  The input <code>CoffeeSource</code> to compile.
-   * @param output The output <code>File</code> to write the CSS to.
+   * @param output The output <code>File</code> to write the js to.
    * @param force  'false' to only compile the input <code>CoffeeSource</code> in case the COFFEE source has been modified (including imports) or the output file does not exists.
    * @throws java.io.IOException If the COFFEE file cannot be read or the output file cannot be written.
    */
@@ -298,7 +298,7 @@ public class CoffeeCompiler {
 
   private void writeToFile(File output, String data) throws IOException {
     String source = data;
-    if (compress) {
+    if (isCompress()) {
       Compiler compiler = new Compiler();
       Result result = compiler.compile(getExterns(), Lists.newArrayList(SourceFile.fromCode(output.getName(), data)), getCompilerOptions());
       source = compiler.toSource();
