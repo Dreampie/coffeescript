@@ -39,7 +39,7 @@ import java.util.List;
 public class CoffeeCompiler {
   private static CoffeeLogger logger = CoffeeLoggerFactory.getLogger(CoffeeSource.class);
 
-  private URL coffeeJs = CoffeeCompiler.class.getClassLoader().getResource("lib/coffee-script-1.7.1.min.js");
+  private URL coffeeJs = CoffeeCompiler.class.getClassLoader().getResource("lib/coffee-script-1.7.1.js");
   private List<Option> optionArgs = Collections.emptyList();
   private String encoding = null;
   private Boolean compress = false;
@@ -150,6 +150,8 @@ public class CoffeeCompiler {
     if (globalScope == null) {
       init();
     }
+
+    long start = System.currentTimeMillis();
     options = new Options(optionArgs);
 
     Context context = Context.enter();
@@ -159,8 +161,13 @@ public class CoffeeCompiler {
       compileScope.put("coffeeScriptSource", compileScope, coffeeScriptSource);
       try {
 
-        return (String) context.evaluateString(compileScope, String.format("CoffeeScript.compile(coffeeScriptSource, %s);", options.toJavaScript()),
+        String result = (String) context.evaluateString(compileScope, String.format("CoffeeScript.compile(coffeeScriptSource, %s);", options.toJavaScript()),
             name, 0, null);
+
+        if (logger.isDebugEnabled()) {
+          logger.debug("Finished compilation of Coffee source in %,d ms.", System.currentTimeMillis() - start);
+        }
+        return result;
       } catch (JavaScriptException e) {
         throw new CoffeeException(e);
       }
