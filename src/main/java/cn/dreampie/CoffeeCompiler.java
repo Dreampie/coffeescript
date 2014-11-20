@@ -18,9 +18,8 @@ package cn.dreampie;
 
 import cn.dreampie.logging.CoffeeLogger;
 import cn.dreampie.logging.CoffeeLoggerFactory;
-import com.google.common.base.Charsets;
+import cn.dreampie.resource.CoffeeSource;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.google.javascript.jscomp.*;
 import com.google.javascript.jscomp.Compiler;
 import org.apache.commons.io.FileUtils;
@@ -40,7 +39,7 @@ import java.util.List;
 public class CoffeeCompiler {
   private static CoffeeLogger logger = CoffeeLoggerFactory.getLogger(CoffeeSource.class);
 
-  private URL coffeeJs = CoffeeCompiler.class.getClassLoader().getResource("/lib/coffee-script-1.7.1.min.js");
+  private URL coffeeJs = CoffeeCompiler.class.getClassLoader().getResource("lib/coffee-script-1.7.1.min.js");
   private List<Option> optionArgs = Collections.emptyList();
   private String encoding = null;
   private Boolean compress = false;
@@ -122,38 +121,25 @@ public class CoffeeCompiler {
   }
 
   private void init() throws IOException {
-    InputStream inputStream = null;
-    if (coffeeJs == null) {
-      inputStream = this.getClass().getResourceAsStream("/lib/coffee-script-1.7.1.min.js");
-    } else
-      inputStream = coffeeJs.openConnection().getInputStream();
     try {
+      Reader reader = new InputStreamReader(coffeeJs.openStream(), "UTF-8");
       try {
-        Reader reader = new InputStreamReader(inputStream, "UTF-8");
+        Context context = Context.enter();
+        context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
         try {
-          Context context = Context.enter();
-          context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
-          try {
-            globalScope = context.initStandardObjects();
-            globalScope.put("logger", globalScope, Context.toObject(logger, globalScope));
-            context.evaluateReader(globalScope, reader, "coffee-script.js", 0, null);
-          } finally {
-            Context.exit();
-          }
+          globalScope = context.initStandardObjects();
+          globalScope.put("logger", globalScope, Context.toObject(logger, globalScope));
+          context.evaluateReader(globalScope, reader, "coffee-script.js", 0, null);
         } finally {
-          reader.close();
+          Context.exit();
         }
-      } catch (UnsupportedEncodingException e) {
-        logger.error("Failed to initialize Coffee compiler.", e);
-        throw new Error(e); // This should never happen
       } finally {
-        inputStream.close();
+        reader.close();
       }
-    } catch (IOException e) {
+    } catch (UnsupportedEncodingException e) {
       logger.error("Failed to initialize Coffee compiler.", e);
       throw new Error(e); // This should never happen
     }
-
   }
 
   public String compile(String coffeeScriptSource) throws CoffeeException, IOException {

@@ -1,9 +1,7 @@
-package cn.dreampie;
+package cn.dreampie.resource;
 
 import cn.dreampie.logging.CoffeeLogger;
 import cn.dreampie.logging.CoffeeLoggerFactory;
-import cn.dreampie.resource.FileResource;
-import cn.dreampie.resource.Resource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 

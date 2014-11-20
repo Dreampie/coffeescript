@@ -1,8 +1,8 @@
 package cn.dreampie;
 
-import java.io.File;
+import cn.dreampie.resource.CoffeeSource;
 
-import static org.junit.Assert.*;
+import java.io.File;
 
 public class CoffeeCompilerTest {
 
