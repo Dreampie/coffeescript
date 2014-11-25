@@ -168,7 +168,7 @@ public class CoffeeCompiler {
         }
         return result;
       } catch (JavaScriptException e) {
-        throw new CoffeeException(e);
+        throw new CoffeeException(e.getMessage());
       }
     } finally {
       Context.exit();
