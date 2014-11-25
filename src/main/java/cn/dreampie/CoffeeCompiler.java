@@ -121,24 +121,23 @@ public class CoffeeCompiler {
   }
 
   private void init() throws IOException {
+    Reader reader = new InputStreamReader(coffeeJs.openStream(), "UTF-8");
     try {
-      Reader reader = new InputStreamReader(coffeeJs.openStream(), "UTF-8");
+      Context context = Context.enter();
+      context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
       try {
-        Context context = Context.enter();
-        context.setOptimizationLevel(-1); // Without this, Rhino hits a 64K bytecode limit and fails
-        try {
-          globalScope = context.initStandardObjects();
-          globalScope.put("logger", globalScope, Context.toObject(logger, globalScope));
-          context.evaluateReader(globalScope, reader, "coffee-script.js", 0, null);
-        } finally {
-          Context.exit();
-        }
+        globalScope = context.initStandardObjects();
+        globalScope.put("logger", globalScope, Context.toObject(logger, globalScope));
+        context.evaluateReader(globalScope, reader, "coffee-script.js", 0, null);
       } finally {
-        reader.close();
+        Context.exit();
       }
-    } catch (UnsupportedEncodingException e) {
-      logger.error("Failed to initialize Coffee compiler.", e);
-      throw new Error(e); // This should never happen
+    } catch (Exception e) {
+      String message = "Failed to initialize Coffee compiler.";
+      logger.error(message, e);
+      throw new IllegalStateException(message, e);
+    } finally {
+      reader.close();
     }
   }
 
